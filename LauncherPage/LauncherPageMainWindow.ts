@@ -11,7 +11,7 @@ import { ButtonC, DivC, H1C, HtmlComponentBase, LV2HtmlComponentBase } from "Sen
 
 
 
-import { 明るくて優しい色をランダムに出力 } from 'Extend/ExtendRandom.ts/RandomColor';
+import { 明るくて優しい色をランダムに出力 } from 'TypeScriptBenriKakuchou/ExtendRandom.ts/RandomColor';
 import { 
     launcher_container, 
     launcher_header, 

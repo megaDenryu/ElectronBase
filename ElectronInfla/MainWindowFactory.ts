@@ -9,7 +9,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { IPythonServerManager } from "../Electron機能コンポーネント/PythonServerManager";
 import { IIpcHandler } from "../Electron機能コンポーネント/IpcHandlerImpl";
-import { NodeLog } from "Extend/DebugLogForNode";
+import { NodeLog } from "TypeScriptBenriKakuchou/DebugLogForNode";
 
 // ESMで__dirnameの代替を定義
 const __filename = fileURLToPath(import.meta.url);

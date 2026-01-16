@@ -9,7 +9,7 @@ import { globalShortcut, clipboard } from 'electron';
 import { ShortcutKey } from '../ShortcutValueObjects/ShortcutKey';
 import { ShortcutCommand } from '../ShortcutValueObjects/ShortcutCommand';
 import { ShortcutRegistration } from '../ShortcutValueObjects/ShortcutRegistration';
-import { NodeLog } from 'Extend/DebugLogForNode';
+import { NodeLog } from 'TypeScriptBenriKakuchou/DebugLogForNode';
 
 export interface IGlobalShortcutManager {
     registerShortcuts(): void;

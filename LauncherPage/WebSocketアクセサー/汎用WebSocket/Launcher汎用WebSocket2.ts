@@ -9,7 +9,7 @@
  * - コールバックの管理
  */
 
-import { 汎用WebSocket2 } from "Extend/汎用WebSocket2";
+import { 汎用WebSocket2 } from "TypeScriptBenriKakuchou/汎用WebSocket2";
 import { LauncherURLBaseInfo } from "../URLBaseInfo";
 import { 
     LauncherMessage, 

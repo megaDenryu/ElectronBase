@@ -11,7 +11,7 @@
  * - MessageProcessorへのイベント委譲
  */
 
-import { ExtendedWebSocket } from "Extend/extend";
+import { ExtendedWebSocket } from "TypeScriptBenriKakuchou/extend";
 import { SendData } from "../../../../ValueObject/DataSend";
 import { ILauncherMessageProcessor } from "../../MessageProcess/ILauncherMessageProcessor";
 import { LauncherURLBaseInfo } from "../URLBaseInfo";
