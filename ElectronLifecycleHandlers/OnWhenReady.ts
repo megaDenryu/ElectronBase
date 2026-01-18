@@ -2,7 +2,7 @@
  * OnWhenReady.ts
  * 
  * app.whenReady()イベントの処理を担当
- * 開発方針: 第一段階 - LV2メソッドのみ実装
+ * 開発方針: Pythonサーバー起動を実装
  */
 
 import { IPythonServerManager } from '../Electron機能コンポーネント/PythonServerManager';
@@ -10,12 +10,15 @@ import { IIpcHandler } from '../Electron機能コンポーネント/IpcHandlerIm
 import { IGlobalShortcutManager } from '../Electron機能コンポーネント/GlobalShortcutManager';
 import { ElectronAppState } from '../Electron機能コンポーネント/ElectronAppState';
 import { IWindowFactory } from '../ElectronInfla/MainWindowFactory';
+import { ChildProcess } from 'child_process';
 
 export interface IOnWhenReady {
     exec(): Promise<void>;
 }
 
 export class OnWhenReady implements IOnWhenReady {
+    private _pythonProcess: ChildProcess | null = null;
+
     constructor(
         private _windowFactory: IWindowFactory,
         private _serverManager: IPythonServerManager,
@@ -49,10 +52,18 @@ export class OnWhenReady implements IOnWhenReady {
     }
 
     /**
-     * LV1: Pythonサーバーを起動 (具体実装は第二段階で)
+     * LV1: Pythonサーバーを起動
      */
     private async startPythonServer(): Promise<void> {
-        // 第二段階で実装
+        try {
+            console.log('[OnWhenReady] Pythonサーバー起動処理を開始');
+            this._pythonProcess = await this._serverManager.startServer(this._appState.mainWindow);
+            this._appState.pythonServerProcess = this._pythonProcess;
+            console.log('[OnWhenReady] Pythonサーバー起動完了');
+        } catch (error) {
+            console.error('[OnWhenReady] Pythonサーバー起動エラー:', error);
+            // エラーが発生してもアプリケーションは継続（Pythonなしでも動作する仕様を想定）
+        }
     }
 
     /**
