@@ -36,14 +36,12 @@ export class PythonServerManager implements IPythonServerManager {
             try {
                 // Pythonの実行ファイルパスを決定（開発時/本番時）
                 const pythonPath = this.getPythonPath();
-                const mainPyPath = this.getMainPyPath();
 
                 console.log(`[PythonServerManager] Pythonサーバーを起動開始`);
                 console.log(`[PythonServerManager] Pythonパス: ${pythonPath}`);
-                console.log(`[PythonServerManager] Main.pyパス: ${mainPyPath}`);
 
-                // Pythonプロセスを生成
-                const pythonProcess = spawn(pythonPath, [mainPyPath], {
+                // Pythonプロセスを生成（PyInstaller生成exeは単体で動作するため引数なし）
+                const pythonProcess = spawn(pythonPath, [], {
                     cwd: this.getProjectRoot(),
                     stdio: ['ignore', 'pipe', 'pipe'],
                     detached: false
