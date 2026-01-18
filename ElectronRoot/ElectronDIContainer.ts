@@ -10,10 +10,10 @@ import { IpcHandlerImpl } from "../Electron機能コンポーネント/IpcHandle
 import { PythonServerManager } from "../Electron機能コンポーネント/PythonServerManager";
 import { ElectronAppState } from "../Electron機能コンポーネント/ElectronAppState";
 import { GlobalShortcutManager } from "../Electron機能コンポーネント/GlobalShortcutManager";
-import { OnWhenReady } from "../ElectronLifecycleHandlers/OnWhenReady";
-import { OnActivate } from "../ElectronLifecycleHandlers/OnActivate";
-import { OnWindowAllClosed } from "../ElectronLifecycleHandlers/OnWindowAllClosed";
-import { OnBeforeQuit } from "../ElectronLifecycleHandlers/OnBeforeQuit";
+import { IOnWhenReady, OnWhenReady } from "../ElectronLifecycleHandlers/OnWhenReady";
+import { IOnActivate, OnActivate } from "../ElectronLifecycleHandlers/OnActivate";
+import { IOnWindowAllClosed, OnWindowAllClosed } from "../ElectronLifecycleHandlers/OnWindowAllClosed";
+import { IOnBeforeQuit, OnBeforeQuit } from "../ElectronLifecycleHandlers/OnBeforeQuit";
 
 export class ElectronDIContainer {
     // 機能コンポーネント
@@ -24,10 +24,10 @@ export class ElectronDIContainer {
     public globalShortcutManager: GlobalShortcutManager;
 
     // ライフサイクルハンドラ
-    public onWhenReady: OnWhenReady;
-    public onActivate: OnActivate;
-    public onWindowAllClosed: OnWindowAllClosed;
-    public onBeforeQuit: OnBeforeQuit;
+    public onWhenReady: IOnWhenReady;
+    public onActivate: IOnActivate;
+    public onWindowAllClosed: IOnWindowAllClosed;
+    public onBeforeQuit: IOnBeforeQuit;
 
     constructor() {
         // 機能コンポーネントの初期化
