@@ -39,8 +39,8 @@ export class OnWhenReady implements IOnWhenReady {
      */
     private async initializeApp(): Promise<void> {
         this.setupIpcHandlers();
-        await this.startPythonServer();
         await this.createMainWindow();
+        this.startPythonServerInBackground();
         this.registerGlobalShortcuts();
     }
 
@@ -64,6 +64,16 @@ export class OnWhenReady implements IOnWhenReady {
             console.error('[OnWhenReady] Pythonサーバー起動エラー:', error);
             // エラーが発生してもアプリケーションは継続（Pythonなしでも動作する仕様を想定）
         }
+    }
+
+    private startPythonServerInBackground(): void {
+        this._serverManager.startServer(this._appState.mainWindow)
+            .then(process => {
+                this._appState.pythonServerProcess = process;
+            })
+            .catch(error => {
+                console.error('[OnWhenReady] Pythonサーバー起動エラー:', error);
+            });
     }
 
     /**

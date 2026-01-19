@@ -8,6 +8,28 @@
 import { app } from 'electron';
 import { ElectronRoot } from './ElectronRoot/ElectronRoot';
 import { ElectronDIContainer } from './ElectronRoot/ElectronDIContainer';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// ログファイルのセットアップ
+const logsDir = path.join(app.getPath('userData'), 'logs');
+if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir, { recursive: true });
+}
+
+const logFilePath = path.join(logsDir, `app-${new Date().getTime()}.log`);
+const logStream = fs.createWriteStream(logFilePath, { flags: 'a' });
+
+// ログ出力関数
+function writeLog(level: string, ...args: any[]) {
+    const timestamp = new Date().toISOString();
+    const message = args.map(arg => 
+        typeof arg === 'string' ? arg : JSON.stringify(arg, null, 2)
+    ).join(' ');
+    const logLine = `[${timestamp}] [${level}] ${message}\n`;
+    logStream.write(logLine);
+    process.stdout.write(logLine);
+}
 
 // Windows環境でのコンソール文字化け対策
 if (process.platform === 'win32') {
@@ -20,28 +42,25 @@ if (process.platform === 'win32') {
     }
 }
 
-// コンソール出力の文字化け対策として、元のログ関数をラップ
-const originalLog = console.log;
-const originalError = console.error;
-const originalWarn = console.warn;
-
+// コンソール出力をファイルに記録
 console.log = (...args: any[]) => {
-    originalLog(...args.map(arg =>
-        typeof arg === 'string' ? arg : JSON.stringify(arg, null, 2)
-    ));
+    writeLog('INFO', ...args);
 };
 
 console.error = (...args: any[]) => {
-    originalError(...args.map(arg =>
-        typeof arg === 'string' ? arg : JSON.stringify(arg, null, 2)
-    ));
+    writeLog('ERROR', ...args);
 };
 
 console.warn = (...args: any[]) => {
-    originalWarn(...args.map(arg =>
-        typeof arg === 'string' ? arg : JSON.stringify(arg, null, 2)
-    ));
+    writeLog('WARN', ...args);
 };
+
+// 未処理の例外をログに記録
+process.on('uncaughtException', (error) => {
+    writeLog('UNCAUGHT_EXCEPTION', error.stack || error.message);
+});
+
+writeLog('INFO', `Electron app starting... Log file: ${logFilePath}`);
 
 // DIコンテナで依存関係を解決
 const diContainer = new ElectronDIContainer();

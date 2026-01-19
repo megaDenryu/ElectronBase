@@ -106,7 +106,11 @@ export class PythonServerManager implements IPythonServerManager {
                 });
 
             } catch (error) {
-                console.error(`[PythonServerManager] 予期しないエラー:`, error);
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                const errorStack = error instanceof Error ? error.stack : '';
+                console.error(`[PythonServerManager] 予期しないエラー: ${errorMessage}`);
+                console.error(`[PythonServerManager] スタック: ${errorStack}`);
+                window?.webContents.send('server-error', `サーバー起動エラー: ${errorMessage}`);
                 reject(error);
             }
         });
@@ -174,15 +178,17 @@ export class PythonServerManager implements IPythonServerManager {
      * 開発時: python、本番時: main.exe
      */
     private getPythonPath(): string {
-        // 本番環境ではapp.getAppPath()の相対パスで.exeを参照
         const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
         if (isDev) {
-            // 開発時はシステムのpythonコマンドを使用
-            return process.platform === 'win32' ? 'python' : 'python3';
+            // VoiroStudio\RefucteringVoiroStudio\dist\main\main.exe　を直接指定する。
+            const projectRoot = this.getProjectRoot();
+            return path.join(projectRoot, 'dist', 'main', 'main.exe');
         } else {
-            // 本番時はEXEファイル内のmain.exeを参照
-            return path.join(app.getAppPath(), '..', 'main.exe');
+            // 本番時：portable/nsis両方対応
+            // app.getAppPath() は app.asar のパスを返すため、その親ディレクトリにある resources/python/main.exe を参照
+            const appDir = path.dirname(app.getAppPath());
+            return path.join(appDir, 'resources', 'python', 'main.exe');
         }
     }
 

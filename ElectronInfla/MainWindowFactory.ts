@@ -60,9 +60,11 @@ export class MainWindowFactory implements IWindowFactory {
             await window.loadURL('http://localhost:5173/html/launcher.html');
         } else {
             NodeLog.print("now Production mode");
-            // ✅ 本番環境: Viteがビルドした dist/html/launcher.html をロード
-            // electron-dist/main/main.js から見た相対パス: ../../dist/html/launcher.html
-            await window.loadFile(path.join(__dirname, '../../dist/html/launcher.html'));
+            // ✅ 本番環境: app.asar 内のリソースから dist/html/launcher.html をロード
+            // app.getAppPath() は release/win-unpacked/resources/app.asar のルートを指す
+            const launcherPath = path.join(app.getAppPath(), 'dist/html/launcher.html');
+            NodeLog.print(`Loading launcher from: ${launcherPath}`);
+            await window.loadFile(launcherPath);
         }
 
         // ウィンドウが閉じられた時の処理

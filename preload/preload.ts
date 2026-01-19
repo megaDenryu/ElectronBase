@@ -17,6 +17,30 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // ログ出力（開発用）
     log: (message: string) => {
         console.log('[Preload]', message);
+    },
+
+    // Pythonサーバーエラーリスナー登録
+    onServerError: (callback: (error: string) => void) => {
+        ipcRenderer.on('server-error', (_event, error: string) => {
+            console.error('[Server Error]', error);
+            callback(error);
+        });
+    },
+
+    // Pythonサーバー準備完了リスナー登録
+    onServerReady: (callback: () => void) => {
+        ipcRenderer.on('server-ready', () => {
+            console.log('[Server Ready] Pythonサーバー起動完了');
+            callback();
+        });
+    },
+
+    // Pythonサーバーログリスナー登録
+    onServerLog: (callback: (log: string) => void) => {
+        ipcRenderer.on('server-log', (_event, log: string) => {
+            console.log('[Server Log]', log);
+            callback(log);
+        });
     }
 });
 
@@ -24,6 +48,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 export interface ElectronAPI {
     getAppVersion: () => Promise<string>;
     log: (message: string) => void;
+    onServerError: (callback: (error: string) => void) => void;
+    onServerReady: (callback: () => void) => void;
+    onServerLog: (callback: (log: string) => void) => void;
 }
 
 // グローバル型拡張
