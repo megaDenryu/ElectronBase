@@ -14,6 +14,13 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * 開発時のサーバー起動モード
+ * - 'exe': dist/main/main.exe を使用（PyInstallerビルド後）
+ * - 'uvicorn': uvicorn コマンドを使用（ビルドなしで即座に起動）
+ */
+type 開発サーバー起動モード = 'exe' | 'uvicorn';
+
 export interface IPythonServerManager {
     startServer(window: BrowserWindow | null): Promise<ChildProcess>;
     stopServer(process: ChildProcess): Promise<void>;
@@ -26,6 +33,9 @@ export class PythonServerManager implements IPythonServerManager {
     private _pythonProcess: ChildProcess | null = null;
     private readonly PYTHON_PORT = 8010;
     private readonly SERVER_START_TIMEOUT = 30000; // 30秒
+    
+    /** 開発時のサーバー起動モード設定 */
+    private readonly 開発モード: 開発サーバー起動モード = 'uvicorn';
 
     constructor() {}
 
@@ -39,18 +49,39 @@ export class PythonServerManager implements IPythonServerManager {
 
         return new Promise((resolve, reject) => {
             try {
-                // Pythonの実行ファイルパスを決定（開発時/本番時）
-                const pythonPath = this.getPythonPath();
-
-                console.log(`[PythonServerManager] Pythonサーバーを起動開始`);
-                console.log(`[PythonServerManager] Pythonパス: ${pythonPath}`);
-
-                // Pythonプロセスを生成（PyInstaller生成exeは単体で動作するため引数なし）
-                const pythonProcess = spawn(pythonPath, [], {
-                    cwd: this.getProjectRoot(),
-                    stdio: ['ignore', 'pipe', 'pipe'],
-                    detached: false
-                });
+                const isDev = !app.isPackaged;
+                const projectRoot = this.getProjectRoot();
+                
+                let pythonProcess: ChildProcess;
+                
+                if (isDev && this.開発モード === 'uvicorn') {
+                    // 開発時: uvicorn コマンドを使用（本番に近い形で起動）
+                    console.log(`[PythonServerManager] Pythonサーバーを起動開始（uvicornモード）`);
+                    console.log(`[PythonServerManager] プロジェクトルート: ${projectRoot}`);
+                    
+                    // localenv の python を使用して uvicorn を実行
+                    const pythonExe = path.join(projectRoot, 'localenv', 'Scripts', 'python.exe');
+                    const uvicornArgs = ['-m', 'uvicorn', 'main:app', '--port=8010', '--host=0.0.0.0', '--lifespan', 'on'];
+                    
+                    console.log(`[PythonServerManager] 実行コマンド: ${pythonExe} ${uvicornArgs.join(' ')}`);
+                    
+                    pythonProcess = spawn(pythonExe, uvicornArgs, {
+                        cwd: projectRoot,
+                        stdio: ['ignore', 'pipe', 'pipe'],
+                        detached: false
+                    });
+                } else {
+                    // 本番時 または 開発時exeモード: main.exe を使用
+                    const pythonPath = this.getPythonPath();
+                    console.log(`[PythonServerManager] Pythonサーバーを起動開始（exeモード）`);
+                    console.log(`[PythonServerManager] Pythonパス: ${pythonPath}`);
+                    
+                    pythonProcess = spawn(pythonPath, [], {
+                        cwd: projectRoot,
+                        stdio: ['ignore', 'pipe', 'pipe'],
+                        detached: false
+                    });
+                }
 
                 this._pythonProcess = pythonProcess;
 
@@ -61,37 +92,38 @@ export class PythonServerManager implements IPythonServerManager {
                     resolve(pythonProcess);
                 }, this.SERVER_START_TIMEOUT);
 
+                // サーバー起動完了を検知する共通ロジック
+                const サーバー起動完了を検知 = (log: string): void => {
+                    if (this._isServerReady) return;
+                    if (
+                        log.includes('Application startup complete') ||
+                        log.includes('Uvicorn running')
+                    ) {
+                        console.log(`[PythonServerManager] Pythonサーバー起動完了を検知`);
+                        this._isServerReady = true;
+                        window?.webContents.send('server-ready');
+                        clearTimeout(timeoutHandle);
+                        resolve(pythonProcess);
+                    }
+                };
+
                 // stdout を監視してサーバー起動完了を検知
                 pythonProcess.stdout?.on('data', (data: Buffer) => {
                     const log = data.toString().trim();
                     if (log) {
                         console.log(`[PythonServer] ${log}`);
                         window?.webContents.send('server-log', log);
-
-                        // サーバー起動完了パターンを複数設定
-                        if (
-                            log.includes('Application startup complete') ||
-                            log.includes('Uvicorn running') ||
-                            log.includes('Running on') ||
-                            log.includes('WARNING') // FastAPIの起動ログ
-                        ) {
-                            if (!this._isServerReady) {
-                                console.log(`[PythonServerManager] Pythonサーバー起動完了を検知`);
-                                this._isServerReady = true;
-                                window?.webContents.send('server-ready');
-                                clearTimeout(timeoutHandle);
-                                resolve(pythonProcess);
-                            }
-                        }
+                        サーバー起動完了を検知(log);
                     }
                 });
 
-                // stderr を監視
+                // stderr を監視（Uvicorn は INFO ログを stderr に出力する）
                 pythonProcess.stderr?.on('data', (data: Buffer) => {
-                    const error = data.toString().trim();
-                    if (error) {
-                        console.error(`[PythonServer Error] ${error}`);
-                        window?.webContents.send('server-error', error);
+                    const log = data.toString().trim();
+                    if (log) {
+                        console.error(`[PythonServer Error] ${log}`);
+                        window?.webContents.send('server-error', log);
+                        サーバー起動完了を検知(log);
                     }
                 });
 

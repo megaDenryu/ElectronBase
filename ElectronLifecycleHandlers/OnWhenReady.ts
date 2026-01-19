@@ -39,8 +39,9 @@ export class OnWhenReady implements IOnWhenReady {
      */
     private async initializeApp(): Promise<void> {
         this.setupIpcHandlers();
+        await this.startPythonServer();
         await this.createMainWindow();
-        this.startPythonServerInBackground();
+        // this.startPythonServerInBackground();
         this.registerGlobalShortcuts();
     }
 
