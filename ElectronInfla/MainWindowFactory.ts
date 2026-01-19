@@ -64,7 +64,14 @@ export class MainWindowFactory implements IWindowFactory {
         // ページロード - ランチャーUIを表示
         if (実行モード.development === true) {
             if (実行モード.pytonTestMode === true) {
-
+                //　viteの開発ターミナルのスレッド内でpythonサーバーを立ち上げるときの処理
+                // 実行場所(app-ts)からC:\Users\pokr301qup\python_dev\VoiroStudio\RefucteringVoiroStudio\dist\main\_internal\app-ts\dist\html\launcher.htmlを指定する。
+                //これは開発環境でpythonサーバーを直接起動するためのテストモードなので他にもLauncher.htmlはこのリポジトリ内に複数あるが他の物を指定しても意味がないので修正不可。
+                // app.getAppPath() は app-ts ディレクトリを指すので、親ディレクトリに移動してから dist/main/_internal へ
+                NodeLog.print(`now Python Test mode : appPath=${app.getAppPath()} `);
+                const launcherPath = path.join(app.getAppPath(), '../dist/main/_internal/app-ts/dist/html/launcher.html');
+                NodeLog.print(`Loading launcher from: ${launcherPath}`);
+                await window.loadFile(launcherPath);
             }else {
                 NodeLog.print("now Development mode");
                 // ✅ 開発環境: Vite開発サーバー (localhost:5173) からロード

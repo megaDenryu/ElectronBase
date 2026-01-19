@@ -8,6 +8,11 @@ import { spawn, ChildProcess } from 'child_process';
 import { BrowserWindow } from 'electron';
 import { app } from 'electron';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ESMで__dirnameの代替を定義
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface IPythonServerManager {
     startServer(window: BrowserWindow | null): Promise<ChildProcess>;
