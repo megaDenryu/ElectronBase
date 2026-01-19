@@ -15,6 +15,11 @@ import { NodeLog } from "TypeScriptBenriKakuchou/DebugLogForNode";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const pythonTestMode = { development: true , pytonTestMode: true };
+const webUITestMode = { development: true , pytonTestMode: false };
+const 本番mode = { development: false };
+type 実行モードType = { development: true; pytonTestMode: boolean } | { development: false };
+
 export interface IWindowFactory {
     createMainWindow(): Promise<BrowserWindow>;
 }
@@ -52,12 +57,19 @@ export class MainWindowFactory implements IWindowFactory {
         // IPC通信のハンドラー設定(プロセス管理のコールバックが必要)
         // ※ 実際の実装では、ElectronRootから参照を受け取る形にするか、
         // または、IpcHandlerに別の設計を適用する必要がある
+        
+
+        const 実行モード: 実行モードType = { development: isDevelopment, pytonTestMode: true };
 
         // ページロード - ランチャーUIを表示
-        if (isDevelopment) {
-            NodeLog.print("now Development mode");
-            // ✅ 開発環境: Vite開発サーバー (localhost:5173) からロード
-            await window.loadURL('http://localhost:5173/html/launcher.html');
+        if (実行モード.development === true) {
+            if (実行モード.pytonTestMode === true) {
+
+            }else {
+                NodeLog.print("now Development mode");
+                // ✅ 開発環境: Vite開発サーバー (localhost:5173) からロード
+                await window.loadURL('http://localhost:5173/html/launcher.html');
+            }
         } else {
             NodeLog.print("now Production mode");
             // ✅ 本番環境: app.asar 内のリソースから dist/html/launcher.html をロード
