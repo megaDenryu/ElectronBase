@@ -54,7 +54,8 @@ export class PythonServerManager implements IPythonServerManager {
                 
                 let pythonProcess: ChildProcess;
                 
-                if (isDev && this.開発モード === 'uvicorn') {
+                // if (isDev && this.開発モード === 'uvicorn') {
+                if (false) {
                     // 開発時: uvicorn コマンドを使用（本番に近い形で起動）
                     console.log(`[PythonServerManager] Pythonサーバーを起動開始（uvicornモード）`);
                     console.log(`[PythonServerManager] プロジェクトルート: ${projectRoot}`);
@@ -223,9 +224,11 @@ export class PythonServerManager implements IPythonServerManager {
             return path.join(projectRoot, 'dist', 'main', 'main.exe');
         } else {
             // 本番時：portable/nsis両方対応
-            // app.getAppPath() は app.asar のパスを返すため、その親ディレクトリにある resources/python/main.exe を参照
-            const appDir = path.dirname(app.getAppPath());
-            return path.join(appDir, 'resources', 'python', 'main.exe');
+            // app.getAppPath() は resources/app.asar のパスを返す
+            // その親の親ディレクトリ(アプリルート)にある resources/python/main.exe を参照
+            // 例: C:\...\VoiroStudio\resources\app.asar → C:\...\VoiroStudio\resources\python\main.exe
+            const resourcesDir = path.dirname(app.getAppPath()); // = .../resources
+            return path.join(resourcesDir, 'python', 'main.exe');
         }
     }
 
