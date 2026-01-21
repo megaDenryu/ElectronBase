@@ -41,6 +41,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
             console.log('[Server Log]', log);
             callback(log);
         });
+    },
+
+    // 外部URLを開く
+    openExternal: (url: string) => {
+        return ipcRenderer.invoke('open-external', url);
     }
 });
 
@@ -51,6 +56,7 @@ export interface ElectronAPI {
     onServerError: (callback: (error: string) => void) => void;
     onServerReady: (callback: () => void) => void;
     onServerLog: (callback: (log: string) => void) => void;
+    openExternal: (url: string) => Promise<void>;
 }
 
 // グローバル型拡張
