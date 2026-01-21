@@ -11,13 +11,14 @@ import { ButtonC, DivC, H1C, HtmlComponentBase, LV2HtmlComponentBase } from "Sen
 
 
 
+import { oneCuteModeColor } from "../../UtilityVanillExtractCss/OneColorTheme/oneColorTheme";
 import { 明るくて優しい色をランダムに出力 } from 'TypeScriptBenriKakuchou/ExtendRandom.ts/RandomColor';
-import { 
-    launcher_container, 
-    launcher_header, 
+import {
+    launcher_container,
+    launcher_header,
     launcher_body,
-    launcher_content, 
-    launcher_title, 
+    launcher_content,
+    launcher_title,
     launcher_sidebar,
     sidebar_button,
     sidebar_button_active,
@@ -30,7 +31,8 @@ import {
 export interface ILauncherPageInfo {
     name: string;
     description?: string;
-    factory: () => HtmlComponentBase;
+    factory?: () => HtmlComponentBase;
+    action?: () => void;
 }
 
 /**
@@ -54,16 +56,9 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
      * LV2: コンポーネントルートを作成
      */
     protected createComponentRoot(): HtmlComponentBase {
-        const containerBgColor = 明るくて優しい色をランダムに出力({
-            saturationMin: 0.2,
-            saturationMax: 0.4,
-            lightnessMin: 0.85,
-            lightnessMax: 0.95
-        });
-        
         return new DivC({ class: launcher_container })
             .setStyleCSS({
-                backgroundColor: `${containerBgColor.hex}F0`
+                backgroundColor: oneCuteModeColor.background
             })
             .childs([
                 this.Header(),
@@ -75,19 +70,14 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
      * LV2: ヘッダー部分を作成
      */
     private Header(): HtmlComponentBase {
-        const headerBgColor = 明るくて優しい色をランダムに出力({
-            saturationMin: 0.25,
-            saturationMax: 0.45,
-            lightnessMin: 0.82,
-            lightnessMax: 0.93
-        });
-        
         return new DivC({ class: launcher_header })
             .setStyleCSS({
-                backgroundColor: `${headerBgColor.hex}99`
+                backgroundColor: oneCuteModeColor.headerBg,
+                color: oneCuteModeColor.headerText
             })
             .child(
                 new H1C({ text: 'One O net Launcher', class: launcher_title })
+                    .setStyleCSS({ color: oneCuteModeColor.headerText })
             );
     }
 
@@ -105,16 +95,9 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
      * LV2: サイドバーを作成
      */
     private TabButtonsSideBar(): HtmlComponentBase {
-        const sidebarBgColor = 明るくて優しい色をランダムに出力({
-            saturationMin: 0.2,
-            saturationMax: 0.4,
-            lightnessMin: 0.83,
-            lightnessMax: 0.92
-        });
-        
         return new DivC({ class: launcher_sidebar })
             .setStyleCSS({
-                backgroundColor: `${sidebarBgColor.hex}B3`
+                backgroundColor: oneCuteModeColor.border
             })
             .bind((container) => {
                 this._buttonContainer = container;
@@ -125,15 +108,8 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
      * LV2: コンテンツ部分を作成
      */
     private Content(): HtmlComponentBase {
-        const contentBgColor = 明るくて優しい色をランダムに出力({
-            saturationMin: 0.15,
-            saturationMax: 0.35,
-            lightnessMin: 0.88,
-            lightnessMax: 0.96
-        });
-        
         return new DivC({ class: launcher_content })
-            .setStyleCSS({backgroundColor: `${contentBgColor.hex}80`})
+            .setStyleCSS({ backgroundColor: 'rgba(255, 255, 255, 0.5)' }) // コンテンツエリアは半透明の白などで明るく
             .bind((div) => {
                 this._viewportContainer = div;
                 this.renderEmptyState();
@@ -144,43 +120,44 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
      * サイドバーボタンを作成
      */
     private createSideBarButton(id: string, info: ILauncherPageInfo): ButtonC {
-        // 強めのランダムカラーを生成（中心色）
-        const baseColor = 明るくて優しい色をランダムに出力({
-            saturationMin: 0.55,
-            saturationMax: 0.75,
-            lightnessMin: 0.45,
-            lightnessMax: 0.65
-        });
-        
-        // HEXをRGBに変換
-        const r = parseInt(baseColor.hex.slice(1, 3), 16);
-        const g = parseInt(baseColor.hex.slice(3, 5), 16);
-        const b = parseInt(baseColor.hex.slice(5, 7), 16);
-        
-        // 振動アニメーションを設定（中強→強→超強→強→中強のループ）
+        // テーマカラーをベースにした色設定
+
+        // HEXをRGBに変換するヘルパー (簡易的な実装)
+        const hexToRgb = (hex: string) => {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return { r, g, b };
+        };
+
+        const activeColor = hexToRgb(oneCuteModeColor.accent);
+
+        // 振動アニメーションを設定（アクセントカラーを使用）
         const animationKeyframes = `
             @keyframes borderPulse-${id} {
-                0% { border-color: rgba(${r}, ${g}, ${b}, 0.1); border-width: 2px; }
-                25% { border-color: rgba(${r}, ${g}, ${b}, 1); border-width: 2px; }
-                50% { border-color: rgba(${r}, ${g}, ${b}, 1); border-width: 2px; }
-                75% { border-color: rgba(${r}, ${g}, ${b}, 1); border-width: 2px; }
-                100% { border-color: rgba(${r}, ${g}, ${b}, 0.1); border-width: 2px; }
+                0% { border-color: rgba(${activeColor.r}, ${activeColor.g}, ${activeColor.b}, 0.1); border-width: 2px; }
+                50% { border-color: rgba(${activeColor.r}, ${activeColor.g}, ${activeColor.b}, 0.8); border-width: 2px; }
+                100% { border-color: rgba(${activeColor.r}, ${activeColor.g}, ${activeColor.b}, 0.1); border-width: 2px; }
             }
         `;
-        
+
         // スタイルタグに追加
         const styleElement = document.createElement('style');
         styleElement.textContent = animationKeyframes;
         document.head.appendChild(styleElement);
-        
+
         return new ButtonC({ class: sidebar_button, text: info.name })
             .addTypedEventListener("click", () => {
+                if (info.action) {
+                    info.action();
+                    return;
+                }
                 this.toggleContentPage(id);
             })
             .setStyleCSS({
-                backgroundColor: `rgba(${r}, ${g}, ${b}, 0.15)`,
-                borderColor: `rgba(${r}, ${g}, ${b}, 0.7)`,
-                animation: `borderPulse-${id} 4s ease-in-out infinite`
+                backgroundColor: oneCuteModeColor.secondaryButton,
+                color: oneCuteModeColor.text,
+                borderColor: oneCuteModeColor.border,
             });
     }
 
@@ -203,7 +180,7 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
      */
     private activatePage(id: string): void {
         const info = this._contentPages.get(id);
-        if (!info) return;
+        if (!info || !info.factory) return;
 
         // インスタンスがまだ作成されていなければ作成
         if (!this._pageInstances.has(id)) {
@@ -233,9 +210,9 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
                 instance.hide(); // 非表示にするが削除はしない
             }
         }
-        
+
         this._activePageId = null;
-        
+
         // ビューポートをクリア
         this._viewportContainer.clearChildren();
         this.renderEmptyState();
@@ -271,7 +248,7 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
      */
     public registerContentPage(id: string, info: ILauncherPageInfo): this {
         this._contentPages.set(id, info);
-        
+
         // ボタンを動的に追加
         const button = this.createSideBarButton(id, info);
         this._buttonMap.set(id, button);
