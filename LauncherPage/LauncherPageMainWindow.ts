@@ -87,7 +87,7 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
                 backgroundColor: `${headerBgColor.hex}99`
             })
             .child(
-                new H1C({ text: 'VoiroStudio Launcher', class: launcher_title })
+                new H1C({ text: 'One O net Launcher', class: launcher_title })
             );
     }
 
