@@ -25,7 +25,7 @@ export class OnWhenReady implements IOnWhenReady {
         private _ipcHandler: IIpcHandler,
         private _globalShortcutManager: IGlobalShortcutManager,
         private _appState: ElectronAppState
-    ) {}
+    ) { }
 
     /**
      * LV2: app.whenReady()時の処理を実行
@@ -39,7 +39,7 @@ export class OnWhenReady implements IOnWhenReady {
      */
     private async initializeApp(): Promise<void> {
         this.setupIpcHandlers();
-        await this.startPythonServer();
+        // await this.startPythonServer();
         await this.createMainWindow();
         // this.startPythonServerInBackground();
         this.registerGlobalShortcuts();
@@ -49,7 +49,13 @@ export class OnWhenReady implements IOnWhenReady {
      * LV1: IPC通信ハンドラーをセットアップ (具体実装は第二段階で)
      */
     private setupIpcHandlers(): void {
-        // 第二段階で実装
+        this._ipcHandler.setupHandlers(
+            this._appState.mainWindow,
+            this._appState.pythonServerProcess,
+            (process) => {
+                this._appState.pythonServerProcess = process;
+            }
+        );
     }
 
     /**

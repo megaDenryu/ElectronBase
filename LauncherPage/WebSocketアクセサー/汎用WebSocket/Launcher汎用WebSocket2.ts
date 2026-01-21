@@ -11,9 +11,9 @@
 
 import { 汎用WebSocket2 } from "TypeScriptBenriKakuchou/汎用WebSocket2";
 import { LauncherURLBaseInfo } from "../URLBaseInfo";
-import { 
-    LauncherMessage, 
-    LauncherMessageType, 
+import {
+    LauncherMessage,
+    LauncherMessageType,
     LauncherMessageSchema,
     CharacterStateListData,
     CharacterUpdatedData
@@ -37,7 +37,7 @@ export class Launcher汎用WebSocket2 {
 
     constructor(urlBase: LauncherURLBaseInfo, callbacks: LauncherGeneralWebSocketCallbacks = {}) {
         this._callbacks = callbacks;
-        
+
         // 汎用WebSocket2にメッセージハンドラーを注入
         this._webSocket = new 汎用WebSocket2<LauncherMessage>({
             url: `ws://${urlBase.localhost}:${urlBase.port}/generalPurPoseWs/${urlBase.client_id}`,
@@ -62,7 +62,7 @@ export class Launcher汎用WebSocket2 {
      */
     private handleMessage(message: LauncherMessage): void {
         console.log('Launcher汎用WebSocket2: メッセージ受信', message);
-        
+
         switch (message.type) {
             case LauncherMessageType.CharacterStateList:
                 this.handleCharacterStateList(message.data);
@@ -104,4 +104,14 @@ export class Launcher汎用WebSocket2 {
     public get readyState(): number {
         return this._webSocket.readyState;
     }
+    /**
+     * フォルダを開くリクエストを送信
+     */
+    public sendOpenFolderRequest(path: string): void {
+        this._webSocket.send({
+            type: LauncherMessageType.OpenFolderRequest,
+            data: { path }
+        });
+    }
+
 }

@@ -49,13 +49,14 @@ export type CharacterUpdatedData = z.infer<typeof CharacterUpdatedDataSchema>;
 export enum LauncherMessageType {
     CharacterStateList = "CharacterStateList",
     CharacterUpdated = "CharacterUpdated",
+    OpenFolderRequest = "OpenFolderRequest"
 }
 
 /**
  * 判別可能ユニオン型による汎用送信データ
  * TypeScript側での型安全性を提供
  */
-export type LauncherMessage = 
+export type LauncherMessage =
     | { type: LauncherMessageType.CharacterStateList; data: CharacterStateListData }
     | { type: LauncherMessageType.CharacterUpdated; data: CharacterUpdatedData };
 
