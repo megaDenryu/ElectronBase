@@ -69,8 +69,8 @@ export class PythonServerManager implements IPythonServerManager {
                     VOIRO_SERVER_PORT: port.toString()
                 };
 
-                // if (isDev && this.開発モード === 'uvicorn') {
-                if (false) {
+                if (isDev && this.開発モード === 'uvicorn') {
+                    // if (false) {
                     // 開発時: uvicorn コマンドを使用（本番に近い形で起動）
                     console.log(`[PythonServerManager] Pythonサーバーを起動開始（uvicornモード）`);
                     console.log(`[PythonServerManager] プロジェクトルート: ${projectRoot}`);
