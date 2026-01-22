@@ -7,6 +7,7 @@
 import { app } from 'electron';
 import { MainWindowFactory } from "../ElectronInfla/MainWindowFactory";
 import { IpcHandlerImpl } from "../Electron機能コンポーネント/IpcHandlerImpl";
+import { ServerConfigManager } from "../Electron機能コンポーネント/ServerConfigManager";
 import { PythonServerManager } from "../Electron機能コンポーネント/PythonServerManager";
 import { ElectronAppState } from "../Electron機能コンポーネント/ElectronAppState";
 import { GlobalShortcutManager } from "../Electron機能コンポーネント/GlobalShortcutManager";
@@ -18,6 +19,7 @@ import { IOnBeforeQuit, OnBeforeQuit } from "../ElectronLifecycleHandlers/OnBefo
 export class ElectronDIContainer {
     // 機能コンポーネント
     public appState: ElectronAppState;
+    public serverConfigManager: ServerConfigManager;
     public serverManager: PythonServerManager;
     public ipcHandler: IpcHandlerImpl;
     public windowFactory: MainWindowFactory;
@@ -32,8 +34,9 @@ export class ElectronDIContainer {
     constructor() {
         // 機能コンポーネントの初期化
         this.appState = new ElectronAppState();
-        this.serverManager = new PythonServerManager();
-        this.ipcHandler = new IpcHandlerImpl(this.serverManager);
+        this.serverConfigManager = new ServerConfigManager();
+        this.serverManager = new PythonServerManager(this.serverConfigManager);
+        this.ipcHandler = new IpcHandlerImpl(this.serverManager, this.serverConfigManager);
         this.windowFactory = new MainWindowFactory(this.serverManager, this.ipcHandler);
         this.globalShortcutManager = new GlobalShortcutManager();
 

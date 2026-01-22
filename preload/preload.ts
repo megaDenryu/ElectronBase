@@ -46,6 +46,21 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // 外部URLを開く
     openExternal: (url: string) => {
         return ipcRenderer.invoke('open-external', url);
+    },
+
+    // Pythonサーバー再起動
+    restartPythonServer: () => {
+        return ipcRenderer.invoke('restart-python-server');
+    },
+
+    // サーバーポート取得
+    getServerPort: () => {
+        return ipcRenderer.invoke('get-server-port');
+    },
+
+    // サーバーポート設定
+    setServerPort: (port: number) => {
+        return ipcRenderer.invoke('set-server-port', port);
     }
 });
 
@@ -57,6 +72,9 @@ export interface ElectronAPI {
     onServerReady: (callback: () => void) => void;
     onServerLog: (callback: (log: string) => void) => void;
     openExternal: (url: string) => Promise<void>;
+    restartPythonServer: () => Promise<void>;
+    getServerPort: () => Promise<number>;
+    setServerPort: (port: number) => Promise<void>;
 }
 
 // グローバル型拡張

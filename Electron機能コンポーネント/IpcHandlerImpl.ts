@@ -7,6 +7,7 @@
 
 import { ipcMain, shell, BrowserWindow } from 'electron';
 import { IPythonServerManager } from './PythonServerManager';
+import { IServerConfigManager } from './ServerConfigManager';
 import { ChildProcess } from 'child_process';
 
 export interface IIpcHandler {
@@ -20,10 +21,16 @@ export interface IIpcHandler {
 
 export class IpcHandlerImpl implements IIpcHandler {
     private _serverManager: IPythonServerManager;
+    private _serverConfig: IServerConfigManager;
     private _registeredChannels: string[] = [];
+    private _currentProcess: ChildProcess | null = null;
 
-    constructor(serverManager: IPythonServerManager) {
+    constructor(
+        serverManager: IPythonServerManager,
+        serverConfig: IServerConfigManager
+    ) {
         this._serverManager = serverManager;
+        this._serverConfig = serverConfig;
     }
 
     /**
@@ -37,19 +44,33 @@ export class IpcHandlerImpl implements IIpcHandler {
         pythonServerProcess: ChildProcess | null,
         onServerProcessUpdate: (process: ChildProcess | null) => void
     ): void {
+        this._currentProcess = pythonServerProcess;
+
         // サーバーステータス確認
         this.registerHandle('check-server-status', () => {
             return this._serverManager.isServerReady();
         });
 
+        // サーバーポート取得
+        this.registerHandle('get-server-port', () => {
+            return this._serverConfig.getPort();
+        });
+
+        // サーバーポート設定
+        this.registerHandle('set-server-port', (_event, port: number) => {
+            this._serverConfig.setPort(port);
+        });
+
         // Pythonサーバーの再起動
         this.registerHandle('restart-python-server', async () => {
-            if (pythonServerProcess) {
-                await this._serverManager.stopServer(pythonServerProcess);
+            if (this._currentProcess) {
+                await this._serverManager.stopServer(this._currentProcess);
             }
             this._serverManager.resetServerReadyFlag();
-            
+
+            // startServer内部でServerConfigから最新のポートを読み込む
             const newProcess = await this._serverManager.startServer(window);
+            this._currentProcess = newProcess;
             onServerProcessUpdate(newProcess);
         });
 

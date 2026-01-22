@@ -28,16 +28,21 @@ export interface IPythonServerManager {
     resetServerReadyFlag(): void;
 }
 
+import { IServerConfigManager } from './ServerConfigManager';
+
+/* ... imports ... */
+
 export class PythonServerManager implements IPythonServerManager {
     private _isServerReady: boolean = false;
     private _pythonProcess: ChildProcess | null = null;
-    private readonly PYTHON_PORT = 8010;
     private readonly SERVER_START_TIMEOUT = 30000; // 30秒
-    
+
     /** 開発時のサーバー起動モード設定 */
     private readonly 開発モード: 開発サーバー起動モード = 'uvicorn';
 
-    constructor() {}
+    constructor(
+        private _serverConfig: IServerConfigManager
+    ) { }
 
     /**
      * Pythonサーバーを起動
@@ -47,40 +52,54 @@ export class PythonServerManager implements IPythonServerManager {
     async startServer(window: BrowserWindow | null): Promise<ChildProcess> {
         this._isServerReady = false;
 
+        // 設定からポートを取得
+        const port = this._serverConfig.getPort();
+        console.log(`[PythonServerManager] 使用ポート: ${port}`);
+
         return new Promise((resolve, reject) => {
             try {
                 const isDev = !app.isPackaged;
                 const projectRoot = this.getProjectRoot();
-                
+
                 let pythonProcess: ChildProcess;
-                
+
+                // 環境変数にポートを設定
+                const spawnEnv = {
+                    ...process.env,
+                    VOIRO_SERVER_PORT: port.toString()
+                };
+
                 // if (isDev && this.開発モード === 'uvicorn') {
                 if (false) {
                     // 開発時: uvicorn コマンドを使用（本番に近い形で起動）
                     console.log(`[PythonServerManager] Pythonサーバーを起動開始（uvicornモード）`);
                     console.log(`[PythonServerManager] プロジェクトルート: ${projectRoot}`);
-                    
+
                     // localenv の python を使用して uvicorn を実行
                     const pythonExe = path.join(projectRoot, 'localenv', 'Scripts', 'python.exe');
-                    const uvicornArgs = ['-m', 'uvicorn', 'main:app', '--port=8010', '--host=0.0.0.0', '--lifespan', 'on'];
-                    
+                    // ポートを動的に指定
+                    const uvicornArgs = ['-m', 'uvicorn', 'main:app', `--port=${port}`, '--host=0.0.0.0', '--lifespan', 'on'];
+
                     console.log(`[PythonServerManager] 実行コマンド: ${pythonExe} ${uvicornArgs.join(' ')}`);
-                    
+
                     pythonProcess = spawn(pythonExe, uvicornArgs, {
                         cwd: projectRoot,
                         stdio: ['ignore', 'pipe', 'pipe'],
-                        detached: false
+                        detached: false,
+                        env: spawnEnv
                     });
                 } else {
                     // 本番時 または 開発時exeモード: main.exe を使用
                     const pythonPath = this.getPythonPath();
                     console.log(`[PythonServerManager] Pythonサーバーを起動開始（exeモード）`);
                     console.log(`[PythonServerManager] Pythonパス: ${pythonPath}`);
-                    
-                    pythonProcess = spawn(pythonPath, [], {
+
+                    // main.exe も --port 引数を受け付ける
+                    pythonProcess = spawn(pythonPath, ['--port', port.toString()], {
                         cwd: projectRoot,
                         stdio: ['ignore', 'pipe', 'pipe'],
-                        detached: false
+                        detached: false,
+                        env: spawnEnv
                     });
                 }
 
