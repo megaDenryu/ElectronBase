@@ -16,15 +16,22 @@ export interface IOnWhenReady {
     exec(): Promise<void>;
 }
 
+/**
+ * 開発時のサーバー起動モード
+ * - 'exe': dist/main/main.exe を使用（PyInstallerビルド後）
+ * - 'uvicorn': uvicorn コマンドを使用（ビルドなしで即座に起動）
+ */
+export type PythonServer起動モード = { isDev: false } | { isDev: true, mode: 'exe' | 'uvicorn' | 'none' }
+export const pythonServer起動モード: PythonServer起動モード = { isDev: true, mode: 'uvicorn' };
+
 export class OnWhenReady implements IOnWhenReady {
     private _pythonProcess: ChildProcess | null = null;
-
     constructor(
         private _windowFactory: IWindowFactory,
         private _serverManager: IPythonServerManager,
         private _ipcHandler: IIpcHandler,
         private _globalShortcutManager: IGlobalShortcutManager,
-        private _appState: ElectronAppState
+        private _appState: ElectronAppState,
     ) { }
 
     /**
@@ -39,9 +46,10 @@ export class OnWhenReady implements IOnWhenReady {
      */
     private async initializeApp(): Promise<void> {
         this.setupIpcHandlers();
-        // await this.startPythonServer();
+        if ((pythonServer起動モード.isDev == true && pythonServer起動モード.mode == 'none') == false) {
+            await this.startPythonServer(pythonServer起動モード);
+        }
         await this.createMainWindow();
-        // this.startPythonServerInBackground();
         this.registerGlobalShortcuts();
     }
 
@@ -61,10 +69,10 @@ export class OnWhenReady implements IOnWhenReady {
     /**
      * LV1: Pythonサーバーを起動
      */
-    private async startPythonServer(): Promise<void> {
+    private async startPythonServer(mode: PythonServer起動モード): Promise<void> {
         try {
             console.log('[OnWhenReady] Pythonサーバー起動処理を開始');
-            this._pythonProcess = await this._serverManager.startServer(this._appState.mainWindow);
+            this._pythonProcess = await this._serverManager.startServer(this._appState.mainWindow, mode);
             this._appState.pythonServerProcess = this._pythonProcess;
             console.log('[OnWhenReady] Pythonサーバー起動完了');
         } catch (error) {
@@ -73,8 +81,8 @@ export class OnWhenReady implements IOnWhenReady {
         }
     }
 
-    private startPythonServerInBackground(): void {
-        this._serverManager.startServer(this._appState.mainWindow)
+    private startPythonServerInBackground(mode: PythonServer起動モード): void {
+        this._serverManager.startServer(this._appState.mainWindow, mode)
             .then(process => {
                 this._appState.pythonServerProcess = process;
             })

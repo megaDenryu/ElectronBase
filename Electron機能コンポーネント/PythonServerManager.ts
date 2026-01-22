@@ -14,21 +14,17 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/**
- * 開発時のサーバー起動モード
- * - 'exe': dist/main/main.exe を使用（PyInstallerビルド後）
- * - 'uvicorn': uvicorn コマンドを使用（ビルドなしで即座に起動）
- */
-type 開発サーバー起動モード = 'exe' | 'uvicorn';
+
 
 export interface IPythonServerManager {
-    startServer(window: BrowserWindow | null): Promise<ChildProcess>;
+    startServer(window: BrowserWindow | null, mode: PythonServer起動モード): Promise<ChildProcess>;
     stopServer(process: ChildProcess): Promise<void>;
     isServerReady(): boolean;
     resetServerReadyFlag(): void;
 }
 
 import { IServerConfigManager } from './ServerConfigManager';
+import { PythonServer起動モード } from 'ElectronBase/ElectronLifecycleHandlers/OnWhenReady';
 
 /* ... imports ... */
 
@@ -36,9 +32,6 @@ export class PythonServerManager implements IPythonServerManager {
     private _isServerReady: boolean = false;
     private _pythonProcess: ChildProcess | null = null;
     private readonly SERVER_START_TIMEOUT = 30000; // 30秒
-
-    /** 開発時のサーバー起動モード設定 */
-    private readonly 開発モード: 開発サーバー起動モード = 'uvicorn';
 
     constructor(
         private _serverConfig: IServerConfigManager
@@ -49,7 +42,7 @@ export class PythonServerManager implements IPythonServerManager {
      * @param window メインウィンドウ（ログ送信用）
      * @returns Pythonプロセス
      */
-    async startServer(window: BrowserWindow | null): Promise<ChildProcess> {
+    async startServer(window: BrowserWindow | null, mode: PythonServer起動モード): Promise<ChildProcess> {
         this._isServerReady = false;
 
         // 設定からポートを取得
@@ -69,7 +62,7 @@ export class PythonServerManager implements IPythonServerManager {
                     VOIRO_SERVER_PORT: port.toString()
                 };
 
-                if (isDev && this.開発モード === 'uvicorn') {
+                if (mode.isDev && mode.mode === 'uvicorn') {
                     // if (false) {
                     // 開発時: uvicorn コマンドを使用（本番に近い形で起動）
                     console.log(`[PythonServerManager] Pythonサーバーを起動開始（uvicornモード）`);
