@@ -10,6 +10,8 @@ import { ShortcutKey } from '../ShortcutValueObjects/ShortcutKey';
 import { ShortcutCommand } from '../ShortcutValueObjects/ShortcutCommand';
 import { ShortcutRegistration } from '../ShortcutValueObjects/ShortcutRegistration';
 import { NodeLog } from 'TypeScriptBenriKakuchou/DebugLogForNode';
+import { RequestAPI } from 'TypeScriptBenriKakuchou/Web/RequestApi';
+import { IResultMessage } from 'TypeScriptBenriKakuchou/Web/ResultMessage';
 
 export interface IGlobalShortcutManager {
     registerShortcuts(): void;
@@ -49,7 +51,7 @@ export class GlobalShortcutManager implements IGlobalShortcutManager {
             'クリップボードのテキストを音声合成'
         );
         const registration = new ShortcutRegistration(key, command);
-        
+
         this.registerShortcut(registration);
     }
 
@@ -93,16 +95,16 @@ export class GlobalShortcutManager implements IGlobalShortcutManager {
      */
     private async executeClipboardToSpeech(): Promise<void> {
         const text = clipboard.readText();
-        
-        NodeLog.print(["Shortcut activated!", { 
+
+        NodeLog.print(["Shortcut activated!", {
             clipboardText: text
         }]);
-        
+
         if (!text || text.trim().length === 0) {
             NodeLog.print('エラー: クリップボードが空です');
             return;
         }
-        
+
         await this.sendTextToSpeechServer(text);
     }
 
@@ -114,24 +116,12 @@ export class GlobalShortcutManager implements IGlobalShortcutManager {
         try {
             NodeLog.print('音声合成サーバーにリクエストを送信します...');
             NodeLog.print(`送信テキスト: ${text}`);
-            
-            const serverUrl = 'http://localhost:8010';
-            const response = await fetch(`${serverUrl}/ShortCut`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    type: 'clipboard_to_speech',
-                    data: text
-                }),
+
+            const result = await RequestAPI.postRequest2<IResultMessage>("ShortCut", {
+                type: 'clipboard_to_speech',
+                data: text
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
             NodeLog.print('音声合成リクエストが成功しました', result);
         } catch (error) {
             NodeLog.print('音声合成リクエストでエラーが発生: ' + error);
