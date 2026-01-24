@@ -11,6 +11,7 @@ import { IGlobalShortcutManager } from '../Electron機能コンポーネント/G
 import { ElectronAppState } from '../Electron機能コンポーネント/ElectronAppState';
 import { IWindowFactory } from '../ElectronInfla/MainWindowFactory';
 import { ChildProcess } from 'child_process';
+import { PythonServer起動モード } from 'ElectronBase/ElectronRoot/PythonServer起動モード';
 
 export interface IOnWhenReady {
     exec(): Promise<void>;
@@ -21,8 +22,7 @@ export interface IOnWhenReady {
  * - 'exe': dist/main/main.exe を使用（PyInstallerビルド後）
  * - 'uvicorn': uvicorn コマンドを使用（ビルドなしで即座に起動）
  */
-export type PythonServer起動モード = { isDev: false } | { isDev: true, mode: 'exe' | 'uvicorn' | 'none' }
-export const pythonServer起動モード: PythonServer起動モード = { isDev: true, mode: 'uvicorn' };
+
 
 export class OnWhenReady implements IOnWhenReady {
     private _pythonProcess: ChildProcess | null = null;
@@ -32,6 +32,7 @@ export class OnWhenReady implements IOnWhenReady {
         private _ipcHandler: IIpcHandler,
         private _globalShortcutManager: IGlobalShortcutManager,
         private _appState: ElectronAppState,
+        private pythonServer起動モード: PythonServer起動モード
     ) { }
 
     /**
@@ -46,8 +47,8 @@ export class OnWhenReady implements IOnWhenReady {
      */
     private async initializeApp(): Promise<void> {
         this.setupIpcHandlers();
-        if ((pythonServer起動モード.isDev == true && pythonServer起動モード.mode == 'none') == false) {
-            await this.startPythonServer(pythonServer起動モード);
+        if ((this.pythonServer起動モード.isDev == true && this.pythonServer起動モード.mode == 'none') == false) {
+            await this.startPythonServer(this.pythonServer起動モード);
         }
         await this.createMainWindow();
         this.registerGlobalShortcuts();

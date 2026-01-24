@@ -1,0 +1,1 @@
+export type PythonServer起動モード = { isDev: false } | { isDev: true, mode: 'exe' | 'uvicorn' | 'none' }

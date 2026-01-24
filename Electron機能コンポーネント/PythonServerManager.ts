@@ -24,7 +24,7 @@ export interface IPythonServerManager {
 }
 
 import { IServerConfigManager } from './ServerConfigManager';
-import { PythonServer起動モード } from 'ElectronBase/ElectronLifecycleHandlers/OnWhenReady';
+import { PythonServer起動モード } from 'ElectronBase/ElectronRoot/PythonServer起動モード';
 
 /* ... imports ... */
 
@@ -51,7 +51,6 @@ export class PythonServerManager implements IPythonServerManager {
 
         return new Promise((resolve, reject) => {
             try {
-                const isDev = !app.isPackaged;
                 const projectRoot = this.getProjectRoot();
 
                 let pythonProcess: ChildProcess;

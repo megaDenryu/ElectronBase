@@ -9,7 +9,7 @@ import { ipcMain, shell, BrowserWindow } from 'electron';
 import { IPythonServerManager } from './PythonServerManager';
 import { IServerConfigManager } from './ServerConfigManager';
 import { ChildProcess } from 'child_process';
-import { pythonServer起動モード } from 'ElectronBase/ElectronLifecycleHandlers/OnWhenReady';
+import { PythonServer起動モード } from 'ElectronBase/ElectronRoot/PythonServer起動モード';
 
 export interface IIpcHandler {
     setupHandlers(
@@ -25,13 +25,16 @@ export class IpcHandlerImpl implements IIpcHandler {
     private _serverConfig: IServerConfigManager;
     private _registeredChannels: string[] = [];
     private _currentProcess: ChildProcess | null = null;
+    private _pythonServer起動モード: PythonServer起動モード;
 
     constructor(
         serverManager: IPythonServerManager,
-        serverConfig: IServerConfigManager
+        serverConfig: IServerConfigManager,
+        pythonServer起動モード: PythonServer起動モード
     ) {
         this._serverManager = serverManager;
         this._serverConfig = serverConfig;
+        this._pythonServer起動モード = pythonServer起動モード;
     }
 
     /**
@@ -70,7 +73,7 @@ export class IpcHandlerImpl implements IIpcHandler {
             this._serverManager.resetServerReadyFlag();
 
             // startServer内部でServerConfigから最新のポートを読み込む
-            const newProcess = await this._serverManager.startServer(window,pythonServer起動モード);
+            const newProcess = await this._serverManager.startServer(window,this._pythonServer起動モード);
             this._currentProcess = newProcess;
             onServerProcessUpdate(newProcess);
         });

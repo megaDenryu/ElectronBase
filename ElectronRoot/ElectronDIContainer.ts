@@ -15,6 +15,8 @@ import { IOnWhenReady, OnWhenReady } from "../ElectronLifecycleHandlers/OnWhenRe
 import { IOnActivate, OnActivate } from "../ElectronLifecycleHandlers/OnActivate";
 import { IOnWindowAllClosed, OnWindowAllClosed } from "../ElectronLifecycleHandlers/OnWindowAllClosed";
 import { IOnBeforeQuit, OnBeforeQuit } from "../ElectronLifecycleHandlers/OnBeforeQuit";
+import { PythonServer起動モード } from './PythonServer起動モード';
+
 
 export class ElectronDIContainer {
     // 機能コンポーネント
@@ -24,6 +26,7 @@ export class ElectronDIContainer {
     public ipcHandler: IpcHandlerImpl;
     public windowFactory: MainWindowFactory;
     public globalShortcutManager: GlobalShortcutManager;
+    public pythonServer起動モード: PythonServer起動モード;
 
     // ライフサイクルハンドラ
     public onWhenReady: IOnWhenReady;
@@ -33,10 +36,12 @@ export class ElectronDIContainer {
 
     constructor() {
         // 機能コンポーネントの初期化
+        const isDev = !app.isPackaged;
+        this.pythonServer起動モード = isDev ? { isDev: true, mode: 'uvicorn' } : { isDev: false };
         this.appState = new ElectronAppState();
         this.serverConfigManager = new ServerConfigManager();
         this.serverManager = new PythonServerManager(this.serverConfigManager);
-        this.ipcHandler = new IpcHandlerImpl(this.serverManager, this.serverConfigManager);
+        this.ipcHandler = new IpcHandlerImpl(this.serverManager, this.serverConfigManager, this.pythonServer起動モード);
         this.windowFactory = new MainWindowFactory(this.serverManager, this.ipcHandler);
         this.globalShortcutManager = new GlobalShortcutManager();
 
@@ -46,7 +51,8 @@ export class ElectronDIContainer {
             this.serverManager,
             this.ipcHandler,
             this.globalShortcutManager,
-            this.appState
+            this.appState,
+            this.pythonServer起動モード
         );
 
         this.onActivate = new OnActivate(
