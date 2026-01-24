@@ -44,12 +44,26 @@ export const CharacterUpdatedDataSchema = z.object({
 export type CharacterUpdatedData = z.infer<typeof CharacterUpdatedDataSchema>;
 
 /**
+ * 移行進捗通知のスキーマ
+ */
+export const MigrationProgressNotificationSchema = z.object({
+    current_count: z.number(),
+    total_count: z.number(),
+    current_file: z.string(),
+    percentage: z.number()
+});
+
+export type MigrationProgressNotification = z.infer<typeof MigrationProgressNotificationSchema>;
+
+/**
  * 汎用送信データタイプのenum定義
  */
 export enum LauncherMessageType {
     CharacterStateList = "CharacterStateList",
     CharacterUpdated = "CharacterUpdated",
-    OpenFolderRequest = "OpenFolderRequest"
+    OpenFolderRequest = "OpenFolderRequest",
+    MigrationProgressNotification = "MigrationProgressNotification",
+    MigrationRequest = "MigrationRequest"
 }
 
 /**
@@ -58,7 +72,8 @@ export enum LauncherMessageType {
  */
 export type LauncherMessage =
     | { type: LauncherMessageType.CharacterStateList; data: CharacterStateListData }
-    | { type: LauncherMessageType.CharacterUpdated; data: CharacterUpdatedData };
+    | { type: LauncherMessageType.CharacterUpdated; data: CharacterUpdatedData }
+    | { type: LauncherMessageType.MigrationProgressNotification; data: MigrationProgressNotification };
 
 /**
  * 各データタイプに対応するZodスキーマの定義
@@ -71,6 +86,10 @@ const LauncherMessageSchemaMap = {
     [LauncherMessageType.CharacterUpdated]: z.object({
         type: z.literal(LauncherMessageType.CharacterUpdated),
         data: CharacterUpdatedDataSchema
+    }),
+    [LauncherMessageType.MigrationProgressNotification]: z.object({
+        type: z.literal(LauncherMessageType.MigrationProgressNotification),
+        data: MigrationProgressNotificationSchema
     })
 } as const;
 
@@ -80,7 +99,8 @@ const LauncherMessageSchemaMap = {
  */
 export const LauncherMessageSchema = z.discriminatedUnion('type', [
     LauncherMessageSchemaMap[LauncherMessageType.CharacterStateList],
-    LauncherMessageSchemaMap[LauncherMessageType.CharacterUpdated]
+    LauncherMessageSchemaMap[LauncherMessageType.CharacterUpdated],
+    LauncherMessageSchemaMap[LauncherMessageType.MigrationProgressNotification]
 ]);
 
 /**

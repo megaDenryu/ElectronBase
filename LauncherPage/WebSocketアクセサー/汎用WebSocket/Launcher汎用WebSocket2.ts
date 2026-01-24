@@ -16,7 +16,8 @@ import {
     LauncherMessageType,
     LauncherMessageSchema,
     CharacterStateListData,
-    CharacterUpdatedData
+    CharacterUpdatedData,
+    MigrationProgressNotification
 } from "./LauncherMessageSchemas";
 
 /**
@@ -25,6 +26,7 @@ import {
 export interface LauncherGeneralWebSocketCallbacks {
     onCharacterStateList?: (data: CharacterStateListData) => void;
     onCharacterUpdated?: (data: CharacterUpdatedData) => void;
+    onMigrationProgress?: (data: MigrationProgressNotification) => void;
 }
 
 /**
@@ -70,6 +72,9 @@ export class Launcher汎用WebSocket2 {
             case LauncherMessageType.CharacterUpdated:
                 this.handleCharacterUpdated(message.data);
                 break;
+            case LauncherMessageType.MigrationProgressNotification:
+                this.handleMigrationProgress(message.data);
+                break;
             default:
                 // TypeScriptの網羅性チェック
                 const _exhaustiveCheck: never = message;
@@ -88,6 +93,12 @@ export class Launcher汎用WebSocket2 {
         console.log('Launcher汎用WebSocket2: キャラクター更新処理', data);
         if (this._callbacks.onCharacterUpdated) {
             this._callbacks.onCharacterUpdated(data);
+        }
+    }
+
+    private handleMigrationProgress(data: MigrationProgressNotification): void {
+        if (this._callbacks.onMigrationProgress) {
+            this._callbacks.onMigrationProgress(data);
         }
     }
 
@@ -111,6 +122,16 @@ export class Launcher汎用WebSocket2 {
         this._webSocket.send({
             type: LauncherMessageType.OpenFolderRequest,
             data: { path }
+        });
+    }
+
+    /**
+     * 移行リクエストを送信
+     */
+    public sendMigrationRequest(source_path: string): void {
+        this._webSocket.send({
+            type: LauncherMessageType.MigrationRequest,
+            data: { source_path }
         });
     }
 
