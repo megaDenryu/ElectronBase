@@ -9,6 +9,7 @@ import { BrowserWindow } from 'electron';
 import { app } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { TextDecoder } from 'util';
 
 // ESMで__dirnameの代替を定義
 const __filename = fileURLToPath(import.meta.url);
@@ -58,7 +59,9 @@ export class PythonServerManager implements IPythonServerManager {
                 // 環境変数にポートを設定
                 const spawnEnv = {
                     ...process.env,
-                    VOIRO_SERVER_PORT: port.toString()
+                    VOIRO_SERVER_PORT: port.toString(),
+                    PYTHONIOENCODING: 'utf-8',
+                    PYTHONUTF8: '1'
                 };
 
                 if (mode.isDev && mode.mode === 'uvicorn') {
@@ -119,9 +122,20 @@ export class PythonServerManager implements IPythonServerManager {
                     }
                 };
 
+
+
+// ...
+
+                // モードに応じてデコーダーのエンコーディングを決定
+                const encoding = this.resolveProcessEncoding(mode);
+
+                // stdout/stderr 用のデコーダーを作成
+                const stdoutDecoder = new TextDecoder(encoding);
+                const stderrDecoder = new TextDecoder(encoding);
+
                 // stdout を監視してサーバー起動完了を検知
                 pythonProcess.stdout?.on('data', (data: Buffer) => {
-                    const log = data.toString().trim();
+                    const log = stdoutDecoder.decode(data, { stream: true }).trim();
                     if (log) {
                         console.log(`[PythonServer] ${log}`);
                         window?.webContents.send('server-log', log);
@@ -131,7 +145,7 @@ export class PythonServerManager implements IPythonServerManager {
 
                 // stderr を監視（Uvicorn は INFO ログを stderr に出力する）
                 pythonProcess.stderr?.on('data', (data: Buffer) => {
-                    const log = data.toString().trim();
+                    const log = stderrDecoder.decode(data, { stream: true }).trim();
                     if (log) {
                         console.error(`[PythonServer Error] ${log}`);
                         window?.webContents.send('server-error', log);
@@ -272,6 +286,29 @@ export class PythonServerManager implements IPythonServerManager {
         } else {
             // 本番時：アプリケーション全体のルート
             return path.join(app.getAppPath(), '..');
+        }
+    }
+
+    /**
+     * 起動モードから適切なエンコーディングを決定する（パターンマッチ風）
+     */
+    private resolveProcessEncoding(mode: PythonServer起動モード): 'utf-8' | 'shift-jis' {
+        // 本番環境 (isDev: false) -> exe実行 -> shift-jis
+        if (!mode.isDev) {
+            return 'shift-jis';
+        }
+
+        // 開発環境 (isDev: true) -> modeによって分岐
+        switch (mode.mode) {
+            case 'uvicorn':
+                // uvicornは環境変数PYTHONUTF8=1でUTF-8化しているため
+                return 'utf-8';
+            case 'exe':
+                // 開発中のexe実行検証 -> Windowsコンソール準拠(Shift-JIS)
+                return 'shift-jis';
+            case 'none':
+            default:
+                return 'utf-8';
         }
     }
 }
