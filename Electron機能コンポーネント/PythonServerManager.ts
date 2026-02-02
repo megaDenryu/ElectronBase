@@ -57,11 +57,12 @@ export class PythonServerManager implements IPythonServerManager {
                 let pythonProcess: ChildProcess;
 
                 // 環境変数にポートを設定
-                const spawnEnv = {
+                let spawnEnv = {
                     ...process.env,
                     VOIRO_SERVER_PORT: port.toString(),
                     PYTHONIOENCODING: 'utf-8',
-                    PYTHONUTF8: '1'
+                    PYTHONUTF8: '1',
+                    VOIRO_EXE_DEBUG: "false"
                 };
 
                     // --exe-debug フラグの伝播
@@ -82,7 +83,7 @@ export class PythonServerManager implements IPythonServerManager {
                             console.log(`[PythonServerManager] デバッグモード有効: --exe-debug を追加`);
                             // uvicornモードで環境変数をセットするのはspawnEnvで行うか、あるいはmain.py側がuvicorn経由で引数を受け取れるようにする必要があるが、
                             // uvicornの引数として渡すのは難しい場合があるため、環境変数で渡すのが確実
-                            spawnEnv['VOIRO_EXE_DEBUG'] = 'true';
+                            spawnEnv.VOIRO_EXE_DEBUG = 'true';
                         }
 
                         console.log(`[PythonServerManager] 実行コマンド: ${pythonExe} ${uvicornArgs.join(' ')}`);
