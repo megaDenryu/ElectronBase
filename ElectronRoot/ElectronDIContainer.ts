@@ -37,7 +37,7 @@ export class ElectronDIContainer {
     constructor() {
         // 機能コンポーネントの初期化
         const isDev = !app.isPackaged;
-        this.pythonServer起動モード = isDev ? { isDev: true, mode: 'uvicorn' } : { isDev: false };
+        this.pythonServer起動モード = isDev ? { isDev: true, mode: 'exe' } : { isDev: false };
         this.appState = new ElectronAppState();
         this.serverConfigManager = new ServerConfigManager();
         this.serverManager = new PythonServerManager(this.serverConfigManager);

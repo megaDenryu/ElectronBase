@@ -64,39 +64,55 @@ export class PythonServerManager implements IPythonServerManager {
                     PYTHONUTF8: '1'
                 };
 
-                if (mode.isDev && mode.mode === 'uvicorn') {
-                    // if (false) {
-                    // 開発時: uvicorn コマンドを使用（本番に近い形で起動）
-                    console.log(`[PythonServerManager] Pythonサーバーを起動開始（uvicornモード）`);
-                    console.log(`[PythonServerManager] プロジェクトルート: ${projectRoot}`);
+                    // --exe-debug フラグの伝播
+                    const isExeDebug = process.argv.includes('--exe-debug');
+                    
+                    if (mode.isDev && mode.mode === 'uvicorn') {
+                        // if (false) {
+                        // 開発時: uvicorn コマンドを使用（本番に近い形で起動）
+                        console.log(`[PythonServerManager] Pythonサーバーを起動開始（uvicornモード）`);
+                        console.log(`[PythonServerManager] プロジェクトルート: ${projectRoot}`);
 
-                    // localenv の python を使用して uvicorn を実行
-                    const pythonExe = path.join(projectRoot, 'localenv', 'Scripts', 'python.exe');
-                    // ポートを動的に指定
-                    const uvicornArgs = ['-m', 'uvicorn', 'main:app', `--port=${port}`, '--host=0.0.0.0', '--lifespan', 'on'];
+                        // localenv の python を使用して uvicorn を実行
+                        const pythonExe = path.join(projectRoot, 'localenv', 'Scripts', 'python.exe');
+                        // ポートを動的に指定
+                        const uvicornArgs = ['-m', 'uvicorn', 'main:app', `--port=${port}`, '--host=0.0.0.0', '--lifespan', 'on'];
+                        
+                        if (isExeDebug) {
+                            console.log(`[PythonServerManager] デバッグモード有効: --exe-debug を追加`);
+                            // uvicornモードで環境変数をセットするのはspawnEnvで行うか、あるいはmain.py側がuvicorn経由で引数を受け取れるようにする必要があるが、
+                            // uvicornの引数として渡すのは難しい場合があるため、環境変数で渡すのが確実
+                            spawnEnv['VOIRO_EXE_DEBUG'] = 'true';
+                        }
 
-                    console.log(`[PythonServerManager] 実行コマンド: ${pythonExe} ${uvicornArgs.join(' ')}`);
+                        console.log(`[PythonServerManager] 実行コマンド: ${pythonExe} ${uvicornArgs.join(' ')}`);
 
-                    pythonProcess = spawn(pythonExe, uvicornArgs, {
-                        cwd: projectRoot,
-                        stdio: ['ignore', 'pipe', 'pipe'],
-                        detached: false,
-                        env: spawnEnv
-                    });
-                } else {
-                    // 本番時 または 開発時exeモード: main.exe を使用
-                    const pythonPath = this.getPythonPath();
-                    console.log(`[PythonServerManager] Pythonサーバーを起動開始（exeモード）`);
-                    console.log(`[PythonServerManager] Pythonパス: ${pythonPath}`);
+                        pythonProcess = spawn(pythonExe, uvicornArgs, {
+                            cwd: projectRoot,
+                            stdio: ['ignore', 'pipe', 'pipe'],
+                            detached: false,
+                            env: spawnEnv
+                        });
+                    } else {
+                        // 本番時 または 開発時exeモード: main.exe を使用
+                        const pythonPath = this.getPythonPath();
+                        console.log(`[PythonServerManager] Pythonサーバーを起動開始（exeモード）`);
+                        console.log(`[PythonServerManager] Pythonパス: ${pythonPath}`);
 
-                    // main.exe も --port 引数を受け付ける
-                    pythonProcess = spawn(pythonPath, ['--port', port.toString()], {
-                        cwd: projectRoot,
-                        stdio: ['ignore', 'pipe', 'pipe'],
-                        detached: false,
-                        env: spawnEnv
-                    });
-                }
+                        const exeArgs = ['--port', port.toString()];
+                        if (isExeDebug) {
+                             console.log(`[PythonServerManager] デバッグモード有効: --exe-debug を追加`);
+                             exeArgs.push('--exe-debug');
+                        }
+
+                        // main.exe も --port 引数を受け付ける
+                        pythonProcess = spawn(pythonPath, exeArgs, {
+                            cwd: projectRoot,
+                            stdio: ['ignore', 'pipe', 'pipe'],
+                            detached: false,
+                            env: spawnEnv
+                        });
+                    }
 
                 this._pythonProcess = pythonProcess;
 
