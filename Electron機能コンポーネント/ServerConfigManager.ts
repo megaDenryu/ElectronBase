@@ -2,7 +2,7 @@
  * ServerConfigManager.ts
  * 
  * サーバー設定（主にポート番号）の保存と読み込みを管理する
- * Python側の AppSettingJson/app_settings.json を直接参照する
+ * Python側の UserData/AppSettingJson/app_settings.json を直接参照する
  */
 
 import { app } from 'electron';
@@ -51,15 +51,15 @@ export class ServerConfigManager implements IServerConfigManager {
 
         let configPath: string;
         if (isDev) {
-            configPath = path.join(projectRoot, 'api', 'AppSettingJson', 'app_settings.json');
+            configPath = path.join(projectRoot, 'api', 'UserData', 'AppSettingJson', 'app_settings.json');
         } else {
             // resources/python/api/AppSettingJson/app_settings.json
             const resourcesDir = path.dirname(app.getAppPath());
-            configPath = path.join(resourcesDir, 'python', 'api', 'AppSettingJson', 'app_settings.json');
+            configPath = path.join(resourcesDir, 'python', 'api', 'UserData', 'AppSettingJson', 'app_settings.json');
 
             // フォールバック: _internal の中にあるケース
             if (!fs.existsSync(configPath)) {
-                const internalPath = path.join(resourcesDir, 'python', '_internal', 'api', 'AppSettingJson', 'app_settings.json');
+                const internalPath = path.join(resourcesDir, 'python', '_internal', 'api', 'UserData', 'AppSettingJson', 'app_settings.json');
                 if (fs.existsSync(internalPath)) {
                     configPath = internalPath;
                 }
