@@ -58,13 +58,7 @@ export class OnWhenReady implements IOnWhenReady {
      * LV1: IPC通信ハンドラーをセットアップ (具体実装は第二段階で)
      */
     private setupIpcHandlers(): void {
-        this._ipcHandler.setupHandlers(
-            this._appState.mainWindow,
-            this._appState.pythonServerProcess,
-            (process) => {
-                this._appState.pythonServerProcess = process;
-            }
-        );
+        this._ipcHandler.setupHandlers();
     }
 
     /**

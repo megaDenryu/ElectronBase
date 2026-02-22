@@ -41,7 +41,7 @@ export class ElectronDIContainer {
         this.appState = new ElectronAppState();
         this.serverConfigManager = new ServerConfigManager();
         this.serverManager = new PythonServerManager(this.serverConfigManager);
-        this.ipcHandler = new IpcHandlerImpl(this.serverManager, this.serverConfigManager, this.pythonServer起動モード);
+        this.ipcHandler = new IpcHandlerImpl(this.serverManager, this.serverConfigManager, this.appState, this.pythonServer起動モード);
         this.windowFactory = new MainWindowFactory(this.serverManager, this.ipcHandler);
         this.globalShortcutManager = new GlobalShortcutManager();
 

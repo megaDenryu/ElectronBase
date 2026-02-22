@@ -9,47 +9,37 @@ import { ipcMain, shell, BrowserWindow } from 'electron';
 import { IPythonServerManager } from './PythonServerManager';
 import { IServerConfigManager } from './ServerConfigManager';
 import { ChildProcess } from 'child_process';
+import { ElectronAppState } from './ElectronAppState';
 import { PythonServer起動モード } from 'ElectronBase/ElectronRoot/PythonServer起動モード';
 
 export interface IIpcHandler {
-    setupHandlers(
-        window: BrowserWindow | null,
-        pythonServerProcess: ChildProcess | null,
-        onServerProcessUpdate: (process: ChildProcess | null) => void
-    ): void;
+    setupHandlers(): void;
     removeAllHandlers(): void;
 }
 
 export class IpcHandlerImpl implements IIpcHandler {
     private _serverManager: IPythonServerManager;
     private _serverConfig: IServerConfigManager;
+    private _appState: ElectronAppState;
     private _registeredChannels: string[] = [];
-    private _currentProcess: ChildProcess | null = null;
     private _pythonServer起動モード: PythonServer起動モード;
 
     constructor(
         serverManager: IPythonServerManager,
         serverConfig: IServerConfigManager,
+        appState: ElectronAppState,
         pythonServer起動モード: PythonServer起動モード
     ) {
         this._serverManager = serverManager;
         this._serverConfig = serverConfig;
+        this._appState = appState;
         this._pythonServer起動モード = pythonServer起動モード;
     }
 
     /**
      * IPC通信のハンドラーを設定
-     * @param window メインウィンドウ
-     * @param pythonServerProcess 現在のPythonプロセス
-     * @param onServerProcessUpdate プロセス更新時のコールバック
      */
-    setupHandlers(
-        window: BrowserWindow | null,
-        pythonServerProcess: ChildProcess | null,
-        onServerProcessUpdate: (process: ChildProcess | null) => void
-    ): void {
-        this._currentProcess = pythonServerProcess;
-
+    setupHandlers(): void {
         // サーバーステータス確認
         this.registerHandle('check-server-status', () => {
             return this._serverManager.isServerReady();
@@ -67,15 +57,18 @@ export class IpcHandlerImpl implements IIpcHandler {
 
         // Pythonサーバーの再起動
         this.registerHandle('restart-python-server', async () => {
-            if (this._currentProcess) {
-                await this._serverManager.stopServer(this._currentProcess);
+            // 現在のプロセスを正確に把握して停止
+            if (this._appState.pythonServerProcess) {
+                console.log('[IpcHandler] 旧サーバープロセスを停止中...');
+                await this._serverManager.stopServer(this._appState.pythonServerProcess);
             }
             this._serverManager.resetServerReadyFlag();
 
             // startServer内部でServerConfigから最新のポートを読み込む
-            const newProcess = await this._serverManager.startServer(window,this._pythonServer起動モード);
-            this._currentProcess = newProcess;
-            onServerProcessUpdate(newProcess);
+            const newProcess = await this._serverManager.startServer(this._appState.mainWindow, this._pythonServer起動モード);
+            
+            // appState を直接更新することで、他のライフサイクルハンドラとも情報を同期
+            this._appState.pythonServerProcess = newProcess;
         });
 
         // 外部URLをブラウザで開く
