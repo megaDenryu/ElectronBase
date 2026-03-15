@@ -5,6 +5,7 @@
  * 開発方針: Pythonサーバー起動を実装
  */
 
+import { Menu } from 'electron';
 import { IPythonServerManager } from '../Electron機能コンポーネント/PythonServerManager';
 import { IIpcHandler } from '../Electron機能コンポーネント/IpcHandlerImpl';
 import { IGlobalShortcutManager } from '../Electron機能コンポーネント/GlobalShortcutManager';
@@ -46,6 +47,9 @@ export class OnWhenReady implements IOnWhenReady {
      * LV2: アプリケーション初期化
      */
     private async initializeApp(): Promise<void> {
+        // File / Edit / View 等のネイティブメニューバーを完全に削除
+        Menu.setApplicationMenu(null);
+
         this.setupIpcHandlers();
         if ((this.pythonServer起動モード.isDev == true && this.pythonServer起動モード.mode == 'none') == false) {
             await this.startPythonServer(this.pythonServer起動モード);

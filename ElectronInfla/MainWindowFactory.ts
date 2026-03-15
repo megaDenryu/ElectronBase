@@ -34,9 +34,15 @@ export class MainWindowFactory implements IWindowFactory {
         // ✅ 開発環境の判定: パッケージされていない = 開発環境
         const isDevelopment = !app.isPackaged; //ここでappを使うのは違法行為だが横着する。
 
+        // TODO: 画像準備後に build/icon.ico を実際のアイコン画像に置き換えてください
+        //       Windows: .ico (256x256推奨)、macOS: .icns、Linux: .png
+        //       electron-builder で 256x256 以上の .png から .ico を自動生成することも可能
+        const iconPath = path.join(__dirname, '../../build/icon.ico');
+
         const window = new BrowserWindow({
             width: 1200,
             height: 800,
+            icon: iconPath,
             webPreferences: {
                 // ✅ プリロードスクリプトのパス: Viteがelectron-dist/preloadに出力
                 // electron-dist/main/main.js から見て ../preload/preload.js
