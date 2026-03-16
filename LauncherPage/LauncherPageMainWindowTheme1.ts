@@ -66,6 +66,9 @@ export class LauncherPageMainWindowTheme1 extends LV2HtmlComponentBase {
     public setLauncherTheme(mode: LauncherThemeMode): void {
         this._currentTheme = LauncherThemeManager.getTheme(mode);
 
+        // スクロール位置を保存（再作成前の旧要素から取得）
+        const scrollTop = this._viewportContainer?.dom.element.scrollTop ?? 0;
+
         // コンポーネントツリー全体を再作成
         const newRoot = this.createComponentRoot();
 
@@ -86,6 +89,11 @@ export class LauncherPageMainWindowTheme1 extends LV2HtmlComponentBase {
             const activeId = this._activePageId;
             this._activePageId = null; // 一旦クリア
             this.activatePage(activeId); // 再アクティブ化
+        }
+
+        // スクロール位置を復元（新しい要素に対して設定）
+        if (this._viewportContainer) {
+            this._viewportContainer.dom.element.scrollTop = scrollTop;
         }
     }
 

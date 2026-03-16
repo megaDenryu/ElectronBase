@@ -1,7 +1,7 @@
-import { ButtonC, DivC, H1C, HtmlComponentBase, LV2HtmlComponentBase } from "SengenUI/index";
+import { ButtonC, DivC, H1C, SpanC, HtmlComponentBase, HtmlComponentChild, LV2HtmlComponentBase } from "SengenUI/index";
 /**
  * LauncherPageView.ts
- * 
+ *
  * ランチャーアプリのメインページUI
  * テストページマネージャーと同様のコンテンツ切り替え機能を実装
  */
@@ -9,6 +9,8 @@ import { ButtonC, DivC, H1C, HtmlComponentBase, LV2HtmlComponentBase } from "Sen
 import { LauncherThemeManager, ILauncherTheme, LauncherThemeMode } from "../../UtilityVanillExtractCss/OneColorTheme/LauncherThemeManager";
 import { oneCuteModeColor } from "../../UtilityVanillExtractCss/OneColorTheme/oneColorTheme"; // fallback
 import { 明るくて優しい色をランダムに出力 } from 'TypeScriptBenriKakuchou/ExtendRandom.ts/RandomColor';
+import { SvgAnimator } from "OneONetUIComponents/Svg/SvgAnimation/OneSvgAnimator";
+import { onechanAvatarDef, animationTimeline } from "OneONetUIComponents/Svg/one_timeline_nikkori_leftright";
 import {
     launcher_container,
     launcher_header,
@@ -27,6 +29,7 @@ import {
 export interface ILauncherPageInfo {
     name: string;
     description?: string;
+    icon?: (size: number, color: string) => HtmlComponentChild;
     factory?: () => HtmlComponentBase;
     action?: () => void;
 }
@@ -116,15 +119,25 @@ export class LauncherPageMainWindowTeme2 extends LV2HtmlComponentBase {
      * LV2: ヘッダー部分を作成
      */
     private Header(): HtmlComponentBase {
+        const oneAnimator = new SvgAnimator(onechanAvatarDef, animationTimeline);
+        oneAnimator.setStyleCSS({ width: "40px", height: "40px" });
+        // DOMに追加された後にアニメーション開始
+        setTimeout(() => oneAnimator.play(), 0);
+
         return new DivC({ class: launcher_header })
             .setStyleCSS({
                 backgroundColor: this._currentTheme.headerBg,
-                color: this._currentTheme.headerText
+                color: this._currentTheme.headerText,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px"
             })
-            .child(
+            .childs([
+                oneAnimator,
                 new H1C({ text: 'One O net Launcher', class: launcher_title })
                     .setStyleCSS({ color: this._currentTheme.headerText })
-            );
+            ]);
     }
 
     /**
@@ -196,7 +209,7 @@ export class LauncherPageMainWindowTeme2 extends LV2HtmlComponentBase {
         styleElement.textContent = animationKeyframes;
         document.head.appendChild(styleElement);
 
-        return new ButtonC({ class: sidebar_button, text: info.name })
+        const button = new ButtonC({ class: sidebar_button })
             .addTypedEventListener("click", () => {
                 if (info.action) {
                     info.action();
@@ -208,7 +221,17 @@ export class LauncherPageMainWindowTeme2 extends LV2HtmlComponentBase {
                 backgroundColor: this._currentTheme.secondaryButton,
                 color: this._currentTheme.text,
                 borderColor: this._currentTheme.border,
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
             });
+
+        if (info.icon) {
+            button.child(info.icon(16, this._currentTheme.accent));
+        }
+        button.child(new SpanC({ text: info.name }));
+
+        return button;
     }
 
     /**
