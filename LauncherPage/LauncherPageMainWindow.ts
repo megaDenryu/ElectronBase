@@ -1,4 +1,4 @@
-import { ButtonC, DivC, H1C, HtmlComponentBase, LV2HtmlComponentBase } from "SengenUI/index";
+import { ButtonC, DivC, H1C, HtmlComponentBase, LV2HtmlComponentBase, 表示切替 } from "SengenUI/index";
 /**
  * LauncherPageView.ts
  * 
@@ -194,7 +194,7 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
         // ビューポートに表示
         this._viewportContainer.clearChildren();
         this._viewportContainer.child(instance);
-        instance.show(); // 表示
+        instance.removeAttribute(表示切替.attribute); // 表示
 
         // ボタンのスタイルを更新
         this.updateButtonStyles();
@@ -207,7 +207,7 @@ export class LauncherPageMainWindow extends LV2HtmlComponentBase {
         if (this._activePageId) {
             const instance = this._pageInstances.get(this._activePageId);
             if (instance) {
-                instance.hide(); // 非表示にするが削除はしない
+                instance.setAttribute(表示切替.attribute, 表示切替.value.hidden); // 非表示にするが削除はしない
             }
         }
 
