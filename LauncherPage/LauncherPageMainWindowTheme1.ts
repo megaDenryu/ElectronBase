@@ -257,7 +257,7 @@ export class LauncherPageMainWindowTheme1 extends LV2HtmlComponentBase {
         // ビューポートに表示
         this._viewportContainer.clearChildren();
         this._viewportContainer.child(instance);
-        instance.removeAttribute(表示切替.attribute); // 表示
+        instance.toggleAttribute(表示切替.attribute, false); // 表示
 
         // ボタンのスタイルを更新
         this.updateButtonStyles();
