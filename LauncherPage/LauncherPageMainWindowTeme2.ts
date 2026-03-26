@@ -158,7 +158,7 @@ export class LauncherPageMainWindowTeme2 extends LV2HtmlComponentBase {
             .setStyleCSS({
                 backgroundColor: this._currentTheme.border
             })
-            .bind((container) => {
+            .tap((container) => {
                 this._buttonContainer = container;
             });
     }
@@ -169,7 +169,7 @@ export class LauncherPageMainWindowTeme2 extends LV2HtmlComponentBase {
     private Content(): HtmlComponentBase {
         return new DivC({ class: launcher_content })
             .setStyleCSS({ backgroundColor: 'rgba(255, 255, 255, 0.5)' })
-            .bind((div) => {
+            .tap((div) => {
                 this._viewportContainer = div;
                 this.renderEmptyState();
             });
