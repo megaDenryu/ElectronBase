@@ -128,12 +128,12 @@ export class Launcher汎用WebSocket2 {
         return this._webSocket.readyState;
     }
     /**
-     * フォルダを開くリクエストを送信
+     * サーバーの保存先フォルダを開くリクエストを送信
      */
-    public sendOpenFolderRequest(path: string): void {
+    public send保存先フォルダを開く(): void {
         this._webSocket.send({
             type: LauncherMessageType.OpenFolderRequest,
-            data: { path }
+            data: {}
         });
     }
 
