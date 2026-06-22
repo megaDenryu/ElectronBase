@@ -56,6 +56,18 @@ export const MigrationProgressNotificationSchema = z.object({
 export type MigrationProgressNotification = z.infer<typeof MigrationProgressNotificationSchema>;
 
 /**
+ * サーバーエラー通知のスキーマ
+ */
+export const サーバーエラー通知Schema = z.object({
+    severity: z.enum(["error", "warning", "info"]),
+    message: z.string(),
+    detail: z.string().nullable().optional(),
+    source: z.string().nullable().optional()
+});
+
+export type サーバーエラー通知 = z.infer<typeof サーバーエラー通知Schema>;
+
+/**
  * 汎用送信データタイプのenum定義
  */
 export enum LauncherMessageType {
@@ -63,7 +75,8 @@ export enum LauncherMessageType {
     CharacterUpdated = "CharacterUpdated",
     OpenFolderRequest = "OpenFolderRequest",
     MigrationProgressNotification = "MigrationProgressNotification",
-    MigrationRequest = "MigrationRequest"
+    MigrationRequest = "MigrationRequest",
+    サーバーエラー通知 = "サーバーエラー通知"
 }
 
 /**
@@ -73,7 +86,8 @@ export enum LauncherMessageType {
 export type LauncherMessage =
     | { type: LauncherMessageType.CharacterStateList; data: CharacterStateListData }
     | { type: LauncherMessageType.CharacterUpdated; data: CharacterUpdatedData }
-    | { type: LauncherMessageType.MigrationProgressNotification; data: MigrationProgressNotification };
+    | { type: LauncherMessageType.MigrationProgressNotification; data: MigrationProgressNotification }
+    | { type: LauncherMessageType.サーバーエラー通知; data: サーバーエラー通知 };
 
 /**
  * 各データタイプに対応するZodスキーマの定義
@@ -90,6 +104,10 @@ const LauncherMessageSchemaMap = {
     [LauncherMessageType.MigrationProgressNotification]: z.object({
         type: z.literal(LauncherMessageType.MigrationProgressNotification),
         data: MigrationProgressNotificationSchema
+    }),
+    [LauncherMessageType.サーバーエラー通知]: z.object({
+        type: z.literal(LauncherMessageType.サーバーエラー通知),
+        data: サーバーエラー通知Schema
     })
 } as const;
 
@@ -100,7 +118,8 @@ const LauncherMessageSchemaMap = {
 export const LauncherMessageSchema = z.discriminatedUnion('type', [
     LauncherMessageSchemaMap[LauncherMessageType.CharacterStateList],
     LauncherMessageSchemaMap[LauncherMessageType.CharacterUpdated],
-    LauncherMessageSchemaMap[LauncherMessageType.MigrationProgressNotification]
+    LauncherMessageSchemaMap[LauncherMessageType.MigrationProgressNotification],
+    LauncherMessageSchemaMap[LauncherMessageType.サーバーエラー通知]
 ]);
 
 /**

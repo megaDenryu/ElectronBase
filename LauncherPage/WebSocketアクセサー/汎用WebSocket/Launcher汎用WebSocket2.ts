@@ -17,7 +17,8 @@ import {
     LauncherMessageSchema,
     CharacterStateListData,
     CharacterUpdatedData,
-    MigrationProgressNotification
+    MigrationProgressNotification,
+    サーバーエラー通知
 } from "./LauncherMessageSchemas";
 
 /**
@@ -27,6 +28,7 @@ export interface LauncherGeneralWebSocketCallbacks {
     onCharacterStateList?: (data: CharacterStateListData) => void;
     onCharacterUpdated?: (data: CharacterUpdatedData) => void;
     onMigrationProgress?: (data: MigrationProgressNotification) => void;
+    onServerError?: (data: サーバーエラー通知) => void;
 }
 
 /**
@@ -75,6 +77,9 @@ export class Launcher汎用WebSocket2 {
             case LauncherMessageType.MigrationProgressNotification:
                 this.handleMigrationProgress(message.data);
                 break;
+            case LauncherMessageType.サーバーエラー通知:
+                this.handleServerError(message.data);
+                break;
             default:
                 // TypeScriptの網羅性チェック
                 const _exhaustiveCheck: never = message;
@@ -99,6 +104,13 @@ export class Launcher汎用WebSocket2 {
     private handleMigrationProgress(data: MigrationProgressNotification): void {
         if (this._callbacks.onMigrationProgress) {
             this._callbacks.onMigrationProgress(data);
+        }
+    }
+
+    private handleServerError(data: サーバーエラー通知): void {
+        console.error('Launcher汎用WebSocket2: サーバーエラー', data);
+        if (this._callbacks.onServerError) {
+            this._callbacks.onServerError(data);
         }
     }
 
