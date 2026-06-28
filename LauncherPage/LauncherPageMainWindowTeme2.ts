@@ -249,6 +249,26 @@ export class LauncherPageMainWindowTeme2 extends LV2HtmlComponentBase {
     }
 
     /**
+     * 外部から特定のコンテンツページを開く(初期表示の指定など)。
+     *
+     * Why: 「LLM未設定案内ポップアップ」 から ランチャーを開いて 詳細設定セクションを
+     * 最初から表示させたいケース等で、 外部から activate を呼べる経路が必要。
+     * 内部状態(_activePageId) を一旦リセットしてから activate するので、 既に別ページを
+     * 開いている状況でも安全に切り替えられる。
+     */
+    public openContentPage(id: string): void {
+        if (!this._contentPages.has(id)) {
+            console.warn(`openContentPage: 未登録のページID "${id}" が指定されました`);
+            return;
+        }
+        if (this._activePageId === id) {
+            return;
+        }
+        this.deactivateCurrentPage();
+        this.activatePage(id);
+    }
+
+    /**
      * コンテンツページをアクティブ化
      */
     private activatePage(id: string): void {
