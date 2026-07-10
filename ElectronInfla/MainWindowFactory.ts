@@ -31,7 +31,7 @@ export class MainWindowFactory implements IWindowFactory {
     ) { }
 
     async createMainWindow(): Promise<BrowserWindow> {
-        // ✅ 開発環境の判定: パッケージされていない = 開発環境
+        //  開発環境の判定: パッケージされていない = 開発環境
         const isDevelopment = !app.isPackaged; //ここでappを使うのは違法行為だが横着する。
 
         // TODO: 画像準備後に build/icon.ico を実際のアイコン画像に置き換えてください
@@ -44,7 +44,7 @@ export class MainWindowFactory implements IWindowFactory {
             height: 800,
             icon: iconPath,
             webPreferences: {
-                // ✅ プリロードスクリプトのパス: Viteがelectron-dist/preloadに出力
+                //  プリロードスクリプトのパス: Viteがelectron-dist/preloadに出力
                 // electron-dist/main/main.js から見て ../preload/preload.js
                 preload: path.join(__dirname, '../preload/preload.js'),
                 contextIsolation: true,
@@ -80,12 +80,12 @@ export class MainWindowFactory implements IWindowFactory {
                 await window.loadFile(launcherPath);
             } else {
                 NodeLog.print("now Development mode");
-                // ✅ 開発環境: Vite開発サーバー (localhost:5173) からロード
-                await window.loadURL('http://localhost:5173/html/launcher.html');
+                //  開発環境: Vite開発サーバー (localhost:18773) からロード
+                await window.loadURL('http://localhost:18773/html/launcher.html');
             }
         } else {
             NodeLog.print("now Production mode");
-            // ✅ 本番環境: app.asar 内のリソースから dist/html/launcher.html をロード
+            //  本番環境: app.asar 内のリソースから dist/html/launcher.html をロード
             // app.getAppPath() は release/win-unpacked/resources/app.asar のルートを指す
             const launcherPath = path.join(app.getAppPath(), 'dist/html/launcher.html');
             NodeLog.print(`Loading launcher from: ${launcherPath}`);
