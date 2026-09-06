@@ -45,6 +45,7 @@ export class LauncherPageMainWindowTeme2 extends LV2HtmlComponentBase {
     private _viewportContainer: DivC;
     private _buttonContainer: DivC;
     private _buttonMap: Map<string, ButtonC> = new Map();
+    private _版表示: SpanC | null = null;
 
     // 現在のテーマ
     private _currentTheme: ILauncherTheme;
@@ -136,8 +137,31 @@ export class LauncherPageMainWindowTeme2 extends LV2HtmlComponentBase {
             .childs([
                 oneAnimator,
                 new H1C({ text: 'One O net Launcher', class: launcher_title })
-                    .setStyleCSS({ color: this._currentTheme.headerText })
+                    .setStyleCSS({ color: this._currentTheme.headerText }),
+                new SpanC({ text: "" })
+                    .setStyleCSS({
+                        fontSize: "12px",
+                        opacity: "0.7",
+                        color: this._currentTheme.headerText,
+                        cursor: "default"
+                    })
+                    .tap((span) => { this._版表示 = span; })
             ]);
+    }
+
+    /**
+     * ヘッダーへ版の表示を流し込む。
+     *
+     * 前提: 版情報の取得は非同期であり、構築の時点では文言が決まっていない。呼び出し側
+     * (LauncherPageEntryPoint) が取得の完了後に呼ぶ。
+     *
+     * 版という概念そのものを引数で受けず文言と補足だけを受けるのは、UI 基盤である
+     * ElectronBase が ElectronAppDomain の型を知らずに済ませるためである。
+     */
+    public 版表示を設定する(文言: string, 補足: string): void {
+        if (this._版表示 === null) { return; }
+        this._版表示.setTextContent(文言);
+        this._版表示.dom.element.title = 補足;
     }
 
     /**
