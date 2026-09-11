@@ -18,8 +18,10 @@ export const CharacterStateInfoSchema = z.object({
     voice_mode: z.string(),
     voice_mode_id: z.number(),
     voice_mode_id_str: z.string(),
-    client_id: z.string(),
-    launch_source: z.enum(['browser', 'electron'])
+    // 注意: サーバーは client_id を追跡しておらず常に null を送る(Python 側 CharacterStateInfo の注記参照)。
+    // z.string() で受けると通知が丸ごと検証で落ち、起動中キャラクター一覧が一度も更新されなくなる。
+    client_id: z.string().nullable(),
+    立ち絵の有無: z.enum(['立ち絵あり', '声だけ'])
 });
 
 export type CharacterStateInfo = z.infer<typeof CharacterStateInfoSchema>;
