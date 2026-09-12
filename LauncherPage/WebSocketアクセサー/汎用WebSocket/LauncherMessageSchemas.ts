@@ -21,7 +21,9 @@ export const CharacterStateInfoSchema = z.object({
     // 注意: サーバーは client_id を追跡しておらず常に null を送る(Python 側 CharacterStateInfo の注記参照)。
     // z.string() で受けると通知が丸ごと検証で落ち、起動中キャラクター一覧が一度も更新されなくなる。
     client_id: z.string().nullable(),
-    キャラクターの種別: z.enum(['画像あり', '画像無し'])
+    // 立ち絵の有無と召喚の実体は直交する2つの軸である(Python 側 CharacterStateInfo の注記参照)。
+    立ち絵: z.enum(['あり', '無し']),
+    召喚の実体: z.enum(['タブを持つキャラクター', 'タブを持たないキャラクター'])
 });
 
 export type CharacterStateInfo = z.infer<typeof CharacterStateInfoSchema>;
